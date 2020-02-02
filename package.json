@@ -40,5 +40,9 @@
     "webpack-glob-entry": "^2.1.1",
     "webpack-merge": "^4.2.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@types/chroma-js": "^1.4.3",
+    "chroma-js": "^2.1.0",
+    "vect-js": "^1.0.19"
+  }
 }
