@@ -16,3 +16,32 @@ body {
 .section {
     flex: 1;
 }
+
+.vect-input-container {
+    font-family: monospace;
+    display: flex;
+    flex-direction: column;
+    margin: 5px;
+}
+
+button.vect-btn {
+    outline: none;
+    cursor: pointer;
+    background: none;
+    border-radius: 10px;
+    border: 2px solid black;
+    padding: 5px 0;
+    margin: 5px;
+    font-weight: bold;
+}
+
+.vect-controls-container {
+    padding: 5px;
+    border: 2px solid white;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}

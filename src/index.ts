@@ -1,8 +1,7 @@
 import "./style.css"
-import Vect, { Vector, Shape, Context } from 'vect-js';
+import Vect, { Context, Controls, ControlsType, InputType, Shape, Vector } from 'vect-js';
 import { MouseState } from "vect-js/lib/types/graphics/types";
 import chroma = require("chroma-js");
-
 
 window.addEventListener('load', onLoad);
 
@@ -21,15 +20,6 @@ function getThetaDoubleDot (theta: number, thetaDot: number) {
   return -resistance * thetaDot - (g / L) * Math.sin(theta);
 }
 
-function getThetaDot (time: number, theta: number, thetaDot: number) {
-  for (let t = 0; t < time / deltaTime; t += deltaTime) {
-    const thetaDoubleDot = getThetaDoubleDot(theta, thetaDot);
-    theta += thetaDot * deltaTime;
-    thetaDot += thetaDoubleDot * deltaTime;
-  }
-  return thetaDot;
-}
-
 function onLoad () {
   const pendulumContainer = document.createElement('div');
   pendulumContainer.classList.add('section');
@@ -37,6 +27,7 @@ function onLoad () {
   fieldContainer.classList.add('section');
   document.getElementById('container').append(pendulumContainer, fieldContainer);
   render(pendulumContainer, fieldContainer);
+  renderControlsUi();
 }
 
 function render (pendulumContainer: HTMLElement, fieldContainer: HTMLElement) {
@@ -89,26 +80,25 @@ function render (pendulumContainer: HTMLElement, fieldContainer: HTMLElement) {
     displayNumbers: false,
     displayBasis: false,
     displayGrid: true,
+    enableMouseMove: true
   });
 
-  const maxSpan = vect2.getMax();
-  const diff = 50;
-
   const ballPoint = new Shape.Circle(new Vector([theta, thetaDot]), 5, '#FFFFFF');
-  const ballV = new Shape.Arrow(ballPoint.position, new Vector([thetaDot, thetaDoubleDot]), '#FFFFFF');
+  const ballVector = new Shape.Arrow(ballPoint.position, new Vector([thetaDot, thetaDoubleDot]), '#FFFFFF');
 
   ballPoint.onUpdate = function () {
     this.position = new Vector([theta * 100, thetaDot * 100]);
-    ballV.position = this.position;
-    ballV.vector = new Vector([thetaDot * 100, thetaDoubleDot * 100]);
+    ballVector.position = this.position;
+    ballVector.vector = new Vector([thetaDot * 100, thetaDoubleDot * 100]);
   };
 
-  vect2.addShapes([ballPoint, ballV]);
+  vect2.addShapes([ballPoint, ballVector]);
 
-  for (let y = maxSpan.y - diff; y > -maxSpan.y; y -= diff) {
-    for (let x = maxSpan.x - diff; x > -maxSpan.x + diff; x -= diff) {
-      // y => theta dot
-      // x => theta
+  const [topLeft, bottomRight] = vect2.getBoundaries();
+  const delta = 50;
+
+  for (let y = topLeft.y - delta; y > bottomRight.y; y -= delta) {
+    for (let x = topLeft.x - delta; x < bottomRight.x + delta; x += delta) {
       let thetaDot = y * deltaTime;
       let theta = x * deltaTime;
       let p = new Vector([x, y]);
@@ -124,4 +114,44 @@ function render (pendulumContainer: HTMLElement, fieldContainer: HTMLElement) {
       vect2.addShape(s);
     }
   }
+}
+
+function renderControlsUi () {
+  let controls = new Controls([
+    {
+      type: ControlsType.INPUT,
+      label: 'Air resistance',
+      inputType: InputType.RANGE,
+      value: resistance,
+      maxValue: resistance + 5,
+      minValue: resistance - 5,
+      step: 0.1,
+      // @ts-ignore
+      onInput: e => resistance = e.target.valueAsNumber
+    },
+    {
+      type: ControlsType.INPUT,
+      label: 'Gravity',
+      inputType: InputType.RANGE,
+      value: g,
+      maxValue: g + 20,
+      minValue: g - 20,
+      step: 1,
+      // @ts-ignore
+      onInput: e => g = e.target.valueAsNumber
+    },
+    {
+      type: ControlsType.INPUT,
+      label: 'Delta time',
+      inputType: InputType.RANGE,
+      value: deltaTime,
+      maxValue: deltaTime + 0.4,
+      minValue: deltaTime - 0.4,
+      step: 0.004,
+      // @ts-ignore
+      onInput: e => deltaTime = e.target.valueAsNumber
+    },
+  ], { color: '#FFFFFF', position: 0});
+
+  document.body.appendChild(controls.domElement);
 }
